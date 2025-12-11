@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>New Furnace Estimate Calculator</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 600px;
+      margin: 20px auto;
+      padding: 16px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+    }
+    h1 {
+      font-size: 1.4rem;
+      margin-bottom: 8px;
+    }
+    label {
+      display: block;
+      margin-top: 10px;
+      font-weight: bold;
+    }
+    input, select, button {
+      width: 100%;
+      padding: 8px;
+      margin-top: 4px;
+      box-sizing: border-box;
+    }
+    button {
+      margin-top: 14px;
+      cursor: pointer;
+    }
+    .result {
+      margin-top: 16px;
+      padding: 12px;
+      border-radius: 6px;
+      background: #f5f5f5;
+    }
+    .note {
+      font-size: 0.85rem;
+      color: #555;
+      margin-top: 8px;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>New Furnace Estimate Calculator</h1>
+  <p>Enter a few details to get an approximate furnace size and price range.</p>
+
+  <label for="sqft">Home size (square feet)</label>
+  <input type="number" id="sqft" min="300" step="10" placeholder="e.g. 1500">
+
+  <label for="insulation">Insulation level</label>
+  <select id="insulation">
+    <option value="average">Average</option>
+    <option value="good">Good (newer, well insulated)</option>
+    <option value="poor">Poor (older, drafty)</option>
+  </select>
+
+  <label for="efficiency">Furnace efficiency preference</label>
+  <select id="efficiency">
+    <option value="standard">Standard efficiency</option>
+    <option value="high">High efficiency</option>
+  </select>
+
+  <button type="button" onclick="calculateFurnace()">Calculate Estimate</button>
+
+  <div id="result" class="result" style="display:none;"></div>
+  <p class="note">
+    This is a rough estimate only and not a Manual J load calculation. 
+    For safety and exact sizing, please have a licensed HVAC professional assess your home.
+  </p>
+
+  <script>
+    function calculateFurnace() {
+      const sqft = parseFloat(document.getElementById('sqft').value);
+      const insulation = document.getElementById('insulation').value;
+      const efficiency = document.getElementById('efficiency').value;
+      const resultDiv = document.getElementById('result');
+
+      if (isNaN(sqft) || sqft <= 0) {
+        resultDiv.style.display = 'block';
+        resultDiv.innerHTML = "<strong>Please enter a valid home size.</strong>";
+        return;
+      }
+
+      let btuPerSqft;
+      if (insulation === 'poor') {
+        btuPerSqft = 45;
+      } else if (insulation === 'good') {
+        btuPerSqft = 25;
+      } else {
+        btuPerSqft = 35;
+      }
+
+      let estimatedBTU = sqft * btuPerSqft;
+      estimatedBTU = Math.round(estimatedBTU / 5000) * 5000;
+
+      let lowBTU = estimatedBTU - 10000;
+      let highBTU = estimatedBTU + 10000;
+      if (lowBTU < 30000) lowBTU = 30000;
+
+      let baseCost = 3000 + (sqft * 1.2);
+      if (efficiency === 'high') baseCost += 800;
+      if (insulation === 'poor') baseCost += 600;
+
+      const lowCost = Math.round(baseCost - 500);
+      const highCost = Math.round(baseCost + 500);
+
+      function formatNumber(n) {
+        return n.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+      }
+
+      resultDiv.style.display = 'block';
+      resultDiv.innerHTML = `
+        <strong>Estimated furnace size:</strong><br>
+        About ${formatNumber(lowBTU)}–${formatNumber(highBTU)} BTU<br><br>
+        <strong>Estimated installed price range:</strong><br>
+        Approximately $${formatNumber(lowCost)}–$${formatNumber(highCost)}<br><br>
+        <em>For an exact quote, please contact our team for a free in-home assessment.</em>
+      `;
+    }
+  </script>
+
+</body>
+</html>
